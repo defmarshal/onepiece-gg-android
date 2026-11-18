@@ -1,8 +1,9 @@
 # OnePiece.gg Android — Task List
 
-Working action list. See `README.md` for the full project write-up.
+Working action list. See `README.md` for install/build, and `NOTES.md` for the full
+research write-up (API contract, verified behaviours, bug history).
 
-**Status: 378/378 tests passing. Installed on device. No open compile errors.**
+**Status: 389/389 tests passing. Installed on device. No open compile errors.**
 
 ---
 
@@ -1903,7 +1904,7 @@ All checklist items done:
   device after install.
 - **End-to-end sign-in on release APK** — verified 2026-11-18 via Google OAuth
   inside the WebView; app auto-closed on token pickup and resumed authenticated.
-- **Known-limitations + support section** — README §1 preamble now carries
+- **Known-limitations + support section** — README install section now carries
   known limitations (unofficial API, Google-in-WebView status now confirmed
   working but could tighten, 2FA unsupported, read offline/write online, deck
   editing partial, unaudited writes, VPN/IPv6 caveat), privacy paragraph, and a

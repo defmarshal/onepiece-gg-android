@@ -6,7 +6,7 @@ between this app and the website.
 **Status: not started.** Scope agreed, format deliberately left open.
 **Estimate: ~15–17h** total, or ~3h to Phase 1.
 
-Parent docs: [`README.md`](README.md) (architecture, API contract) ·
+Parent docs: [`NOTES.md`](NOTES.md) (architecture, API contract) ·
 [`TASKS.md`](TASKS.md) (overall backlog)
 
 ---
@@ -121,7 +121,7 @@ LEADER               : exactly 1, required, and SEPARATE from the 50.
 
 ## 8. Traps in this codebase — read before editing
 
-Each of these cost real debugging time already. See `README.md` §8 for the full
+Each of these cost real debugging time already. See `NOTES.md` §8 for the full
 list.
 
 - [ ] **`remember` must be keyed on async-loaded data too.** The related list was

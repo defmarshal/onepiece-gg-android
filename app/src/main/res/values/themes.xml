@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.OnePieceGG" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#13171B</item>
+        <item name="android:navigationBarColor">#13171B</item>
+        <!--
+          The launch window's background: the app's own colour with the bare mark
+          centred, so a cold start is a logo on a dark field rather than a blank
+          screen. On API 31+ the system splash takes over - see values-v31, which
+          overrides this same style to add the windowSplashScreen* attributes.
+        -->
+        <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
+</resources>

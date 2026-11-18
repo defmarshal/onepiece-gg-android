@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.OnePieceGG" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#13171B</item>
+        <item name="android:navigationBarColor">#13171B</item>
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:windowSplashScreenBackground">#13171B</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_mark</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#13171B</item>
+    </style>
+</resources>

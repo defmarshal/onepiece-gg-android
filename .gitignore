@@ -1,0 +1,17 @@
+# Gradle / build output
+.gradle/
+build/
+app/build/
+.kotlin/
+hs_err_pid*.log
+
+# IDE
+.idea/
+
+# Machine-specific
+local.properties
+
+# Never commit signing material
+keystore.properties
+*.jks
+*.keystore

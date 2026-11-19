@@ -1118,8 +1118,10 @@ arity:sp card). */
     fun clearDeckDetail() = _state.update { it.copy(deckDetail = null, deckDetailError = null) }
 
     // ---- local deck builder --------------------------------------------
-    // These decks live on the device only. The website write endpoint is
-    // unsolved, so "Copy deck code" is the bridge to onepiece.gg.
+    // The device is the source of truth. `saveDeckToSite` publishes a deck to
+    // onepiece.gg and stores its machine name (`deckname`) so later saves
+    // update the same copy; "Copy deck code" still exists for pasting the
+    // list into the site by hand.
 
     private var codeLookup: DeckCode.Lookup? = null
 
@@ -1216,6 +1218,60 @@ arity:sp card). */
             val next = decksReady().filterNot { it.id == id }
             _state.update { it.copy(localDecks = next) }
             deckStore.write(next)
+        }
+    }
+
+    /**
+     * Publishes a local deck to onepiece.gg, or updates the copy already there.
+     *
+     * The site identifies decks by a machine name (`deckname`), not by id or
+     * slug, so the first save stores that name on the local deck and every
+     * later save reuses it. Renaming in the app therefore renames the site copy
+     * instead of creating a second one.
+     *
+     * `savedeck` replaces the whole card list, which is what we want: the local
+     * deck is the source of truth.
+     */
+    fun saveDeckToSite(id: String) {
+        val deck = _state.value.localDecks.firstOrNull { it.id == id } ?: return
+        if (_state.value.session == null) {
+            postMessage("Sign in to save decks to onepiece.gg")
+            return
+        }
+        val cards = deck.cards.filterValues { it > 0 }
+        if (cards.isEmpty()) {
+            postMessage("Add cards before saving this deck")
+            return
+        }
+        val deckname = deck.siteDeckname ?: SiteDeckName.generate()
+        viewModelScope.launch {
+            runCatching { api.saveDeck(SaveDeckRequest.of(deckname, deck.name, cards)) }
+                .onSuccess { saved ->
+                    val current = _state.value.localDecks
+                    val next = current.map {
+                        if (it.id == id) {
+                            it.copy(
+                                siteDeckname = saved.deckname,
+                                siteSlug = saved.slug,
+                                updatedAt = System.currentTimeMillis(),
+                            )
+                        } else {
+                            it
+                        }
+                    }
+                    _state.update { it.copy(localDecks = next) }
+                    deckStore.write(next)
+                    postMessage(
+                        if (deck.siteDeckname == null) {
+                            "Saved to onepiece.gg as \u201C${deck.name}\u201D"
+                        } else {
+                            "Updated \u201C${deck.name}\u201D on onepiece.gg"
+                        },
+                    )
+                }
+                .onFailure {
+                    postMessage("Could not save to onepiece.gg: ${it.message ?: "unknown error"}")
+                }
         }
     }
 

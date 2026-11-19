@@ -19,11 +19,12 @@ private data class DeckFile(
 /**
  * On-device deck storage.
  *
- * These decks are NOT synced to onepiece.gg - the write endpoint there is
- * unsolved. Use **Copy deck code** to move a deck to the website.
+ * The device is the source of truth. A deck can be published to onepiece.gg
+ * from the builder menu (`savedeck`, which keys on the stored `siteDeckname`),
+ * but its local copy is never overwritten by the site.
  *
  * Stored unencrypted, like the existing session token, so decks survive a
- * reinstall only if the user exports them.
+ * reinstall only if they have been saved to the site or exported.
  */
 class LocalDeckStore(private val context: Context) {
 

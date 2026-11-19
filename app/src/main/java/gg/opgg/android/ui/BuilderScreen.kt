@@ -97,8 +97,9 @@ private enum class Action { RENAME, DELETE }
 private data class PendingDeckAction(val id: String, val name: String, val action: Action)
 
 /**
- * The deck list. Decks live on this device only; "Copy deck code" is how one
- * reaches onepiece.gg, because the website's write endpoint is unsolved.
+ * The deck list. Decks live on this device; the menu can publish one to
+ * onepiece.gg (`savedeck`), and "Copy deck code" remains for pasting a list
+ * into the site by hand.
  *
  * [onEdit] receives the deck id to open rather than the screen reading it back
  * out of state. It used to call `vm.openLocalDeck(id)` and then navigate, but
@@ -186,7 +187,8 @@ fun BuilderScreen(
                                     )
                                     Text(
                                         "$main / ${DeckRules.MAIN_DECK_SIZE} cards · " +
-                                            "${DeckRules.coloursUsed(deck, lookup).size} colour(s)",
+                                            "${DeckRules.coloursUsed(deck, lookup).size} colour(s)" +
+                                            if (deck.siteDeckname != null) " · on onepiece.gg" else "",
                                         color = AppColors.TextDim,
                                         fontSize = AppType.body,
                                     )
@@ -284,6 +286,25 @@ fun BuilderScreen(
                                                 "Deck code copied for onepiece.gg."
                                             },
                                         )
+                                    },
+                                )
+                                // `savedeck` is create-only in the old notes because
+                                // its identity field was missed: the site keys the
+                                // deck on `deckname`, so saving twice updates the
+                                // same copy instead of making a duplicate.
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            if (deck.siteDeckname == null) {
+                                                "Save to onepiece.gg"
+                                            } else {
+                                                "Update on onepiece.gg"
+                                            },
+                                        )
+                                    },
+                                    onClick = {
+                                        menuOpen = false
+                                        vm.saveDeckToSite(deck.id)
                                     },
                                 )
                                 DropdownMenuItem(

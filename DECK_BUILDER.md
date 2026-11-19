@@ -16,7 +16,7 @@ Parent docs: [`NOTES.md`](NOTES.md) (architecture, API contract) ·
 | Question | Decision |
 |---|---|
 | DON cards | **Out of scope** — unused, do not model or validate them |
-| Server sync | **Out of scope for now.** The write endpoint is unsolved; the builder does not depend on it |
+| Server sync | **Done (2026-11-19)** — `savedeck` keys on the deck's machine name (`deckname`), so a deck can be published and re-saved as an update. See `TASKS.md` §2.43 |
 | Deck code | **In scope** — export and import |
 | JSON import/export | **In scope for round-tripping inside the app.** The exact website JSON shape is **TBD and deliberately deferred** |
 | Placement | A / B / C still open — recommended **B** (one Decks tab with a segmented control) |

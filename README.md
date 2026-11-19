@@ -33,8 +33,8 @@ later versions install over earlier ones without uninstalling.
 - **Collection** — counts for normal and foil, multiple binders, and a wishlist.
 - **Decks** — browse public decks from the site, inspect lists against the cards you
   own, and build decks locally with live legality checking (50 cards, max 4 per
-  printing, max 2 colours, the leader defines the colours). Built decks stay on the
-  device and export as a deck code you can paste on onepiece.gg.
+  printing, max 2 colours, the leader defines the colours). A built deck can be saved
+  to onepiece.gg from its menu, and saving again updates that same copy.
 - **Metagame** — archetype shares from the site's snapshot.
 - **Offline browsing** — the card database and your collection are cached, so the app
   opens and browses without a connection.
@@ -42,8 +42,8 @@ later versions install over earlier ones without uninstalling.
 ## Sign-in
 
 Sign-in is optional: cards, decks, the deck builder and the metagame work signed out.
-Only your **collection** and **wishlist** need an account, because those live on the
-site.
+Only your **collection**, **wishlist** and **publishing a deck to onepiece.gg** need an
+account, because those live on the site.
 
 The app opens OnePiece.gg's own login page inside the app, where you sign in with
 **Google**, **Discord**, or **email + password**. Your password is never typed into the
@@ -60,8 +60,9 @@ same page but have not been tested from the app.
   two-factor account has been tested.
 - **Reads are offline; writes are not.** Adding cards to your binder needs a connection
   and is not queued.
-- **Decks you build stay on your device.** They are not published to onepiece.gg — the
-  site's save endpoint is still unsolved — so use "copy deck code" there.
+- **Decks can be published to onepiece.gg** — "Save to onepiece.gg" in a deck's menu
+  creates the deck there, and saving again updates the same copy. The site's deck page
+  is the place to share it; the app has no delete-the-site-copy action yet.
 - **Not every write endpoint has been audited**, so a failed collection save can
   occasionally report success. Check the website if a write matters.
 - **A VPN or a broken IPv6 route can stall the first load.** The backend has no IPv6;
@@ -93,7 +94,7 @@ Requires JDK 21 and Android SDK platform 36. The Gradle wrapper downloads Gradle
 $p = "C:\path\to\onepiece-gg-android"
 $env:JAVA_HOME = "C:\path\to\jdk-21"
 
-& "$p\gradlew.bat" -p $p :app:testDebugUnitTest    # 389 tests, incl. live-API tests
+& "$p\gradlew.bat" -p $p :app:testDebugUnitTest    # 394 tests, incl. live-API tests
 & "$p\gradlew.bat" -p $p :app:assembleDebug       # app\build\outputs\apk\debug\app-debug.apk
 & "$p\gradlew.bat" -p $p :app:assembleRelease     # app\build\outputs\apk\release\app-release.apk
 

@@ -52,6 +52,11 @@ object LocalDeckOps {
      *
      * `createdAt` and `updatedAt` are both [now]: a copy is a new deck, and
      * leaving the original's timestamps makes the list sort wrongly.
+     *
+     * The site link is dropped on purpose. `savedeck` keys on `deckname`, so a
+     * copy that inherited it would silently overwrite the original on
+     * onepiece.gg the first time it was saved; a copy must publish as its own
+     * deck instead.
      */
     fun duplicate(
         deck: LocalDeck,
@@ -64,5 +69,7 @@ object LocalDeckOps {
         cards = deck.cards.toMap(),
         createdAt = now,
         updatedAt = now,
+        siteDeckname = null,
+        siteSlug = null,
     )
 }

@@ -403,6 +403,19 @@ class OpggApi(private val tokenProvider: () -> Pair<Long, String>?) {
         return parsed.collection.orEmpty()
     }
 
+    /**
+     * Creates or updates a deck on onepiece.gg. Reuse the same `deckname` to
+     * update; see [SaveDeckRequest] for why that field is the identity.
+     */
+    suspend fun saveDeck(request: SaveDeckRequest): SaveDeckResponse {
+        val raw = postJson(cgfw("savedeck"), request)
+        val parsed = AppJson.decodeFromString(SaveDeckResponse.serializer(), raw)
+        // The endpoint answers HTTP 200 even on failure.
+        if (parsed.error) throw DotggException(parsed.error_text ?: "Could not save the deck")
+        if (parsed.deckname.isBlank()) throw DotggException("onepiece.gg did not return the saved deck")
+        return parsed
+    }
+
     suspend fun createBinder(name: String): Long {
         val raw = postJson(cgfw("createbinder"), CreateBinderRequest(name = name))
         val parsed = AppJson.decodeFromString(CreateBinderResponse.serializer(), raw)

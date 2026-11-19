@@ -5,6 +5,7 @@ import gg.opgg.android.data.LocalDeckOps
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -120,5 +121,16 @@ class LocalDeckOpsTest {
         val copy = LocalDeckOps.duplicate(deck(), "d2", now = 1L, existingNames = taken)
         assertEquals("Beast (copy 2)", copy.name)
         assertFalse(copy.name in taken)
+    }
+
+    @Test
+    fun aDuplicateDoesNotInheritTheSiteLink() {
+        // savedeck keys on deckname, so carrying the link over would make the
+        // copy overwrite the original on onepiece.gg.
+        val src = deck().copy(siteDeckname = "qxqgktmi49", siteSlug = "beast-abc12")
+        val copy = LocalDeckOps.duplicate(src, "d2", now = 500L, existingNames = listOf("Beast"))
+        assertNull(copy.siteDeckname)
+        assertNull(copy.siteSlug)
+        assertEquals("the original keeps its link", "qxqgktmi49", src.siteDeckname)
     }
 }

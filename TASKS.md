@@ -12,7 +12,7 @@ research write-up (API contract, verified behaviours, bug history).
 ```powershell
 $p = "C:\Users\defma\projects\onepiece-gg-android"
 $env:JAVA_HOME = "C:\Users\defma\.dotgg-tools\jdk21\jdk-21.0.12.1+1"   # no JDK on PATH by default
-& "$p\gradlew.bat" -p $p :app:testDebugUnitTest    # 378 tests, incl. live-API tests
+& "$p\gradlew.bat" -p $p :app:testDebugUnitTest    # 394 tests, incl. live-API tests
 & "$p\gradlew.bat" -p $p :app:assembleDebug       # -> app\build\outputs\apk\debug\app-debug.apk
 adb install -r "$p\app\build\outputs\apk\debug\app-debug.apk"
 ```
@@ -245,9 +245,10 @@ the editor UI. DON cards and server sync were deliberately left out of scope.
       tab was tried and did not fit.
 - [x] **Deck-code import/export** - `${count}x${id}` lines, case-insensitive by
       card id, with 10 passing tests.
-- [x] **Server sync stays blocked.** `savedeck` is create-only through all nine
-      selectors tried; `deletedeck` returns HTTP 200 with an empty body and
-      removes nothing. No update path found. Blocked, not scoped out.
+- [x] **Server sync was thought to be blocked, then solved.** `savedeck` is not
+      create-only: its selector is `deckname`, which the nine earlier probes never
+      sent. Re-POSTing a `deckname` updates in place. Fixed 2026-11-19 - see §2.43.
+      `deletedeck` still returns HTTP 200 with an empty body and removes nothing.
 - [x] **The repeated "no Leader" text on every tile is gone** - it was the same
       root cause as 2.8 and was fixed by the same `TileAvailability` change.
 ### 2.2 "Cards I still need" - deck view DONE; set view not started
@@ -1921,10 +1922,51 @@ All checklist items done:
 Build: **389/389 tests, 30 classes, 0 failures; release APK assembled and
 signature-verified.** Installing the fresh key requires uninstall first
 (INSTALL_FAILED_UPDATE_INCOMPATIBLE vs. debug-signed prior installs), which
-wipes app data — the README quick start documents this.
+wipes app data - the README quick start documents this.
+
+### 2.43 Decks can be saved to onepiece.gg — 2026-11-19
+
+`§2.1` recorded server sync as blocked because `savedeck` looked create-only
+through nine selector variants. It was not create-only: **the selector is
+`deckname`**, a machine name the site's builder generates, and `id` / `slug` /
+`name` are ignored. We missed it because the write code lives in a lazy JS chunk
+that was never found.
+
+The body was captured from the site's own builder
+(`onepiece.gg/builder/<deckName>`), then verified against the live API before
+any code was written:
+
+- Re-POSTing the captured body with the same `deckname` returned the **same id**
+  (`1870759`) with `date_edited` moved - an update, not a duplicate.
+- Sending three copies of one card **replaced** the four-card list wholesale.
+- `humanname` is the display title; changing it regenerated the public `slug`
+  (`ace-newgate-deck-n6a4i` → `opgg-update-test`), while `id`/`deckname` stayed
+  stable. So the app stores **`deckname`**, never the slug.
+- `public` / `unrestricted` are strings (`"0"`), not booleans.
+- No WordPress cookie is needed - `Dotgguserauth` alone, like every other write.
+
+Implementation:
+
+- `data/DeckWrite.kt` - `SaveDeckRequest` with **no default values**, because
+  Ktor's kotlinx serializer omits defaults and the site always sends every field.
+  `SaveDeckResponse` (accepts `error`/`error_text`), `SiteDeckName.generate()`
+  producing the site's 10-char lowercase-alphanumeric shape.
+- `OpggApi.saveDeck()` - POSTs `cgfw("savedeck")`, throws on `error:true` even
+  though the response is HTTP 200.
+- `LocalDeck` gained `siteDeckname` / `siteSlug` (serializable with defaults, so
+  existing `opgg-decks.json` files load unchanged). First save stores the name,
+  later saves reuse it - renaming in the app renames the site copy instead of
+  creating another.
+- Deck menu: **Save to onepiece.gg** / **Update on onepiece.gg**.
+- `DeckWriteTest` (4 tests) pins the field set, the string-typed flags, the
+  printing→count map and the generated name shape.
+
+**394 tests, 31 classes, 0 failures.** Verified end-to-end through the UI on the
+release build (2026-11-19): saving the local 50-card "Blue Nami" made it appear
+in the account's Mine tab with 51 cards (leader included), and saving again
+showed "Update on onepiece.gg" while the deck count stayed at 8 - no duplicate.
 
 ## 3. Open gaps and risks
-
 - [ ] **VPN with a dead underlying network defeats the offline fast path.**
       Android keeps `NET_CAPABILITY_VALIDATED` sticky on the VPN network, so
       `NetworkStatus.isOnline` reports online and requests hang into the normal
@@ -1945,7 +1987,12 @@ wipes app data — the README quick start documents this.
       are checked (they throw on `error:true`).
 - [x] **Deck, editor and related-list screens** — rendered and checked on the
       device (§2.30). No crashes; deck detail/editor/related list all draw.
-- [ ] **The `savedeck` update path is still unknown** — create-only so far.
+- [x] **The `savedeck` update path is settled** (2026-11-19). The body was
+      captured from the site's own builder: the identity field is `deckname` (a
+      machine name), the title is `humanname`, and re-POSTing the same
+      `deckname` updates in place. Verified live (same id, `date_edited` moved,
+      no new deck). The app now saves and updates decks from the builder menu
+      (§2.43). `deletedeck` is still a no-op.
 - [x] **Google sign-in inside a WebView** — **works.** Verified end-to-end on a
       signed release build, 2026-11-18: Google OAuth completed inside the WebView,
       the site minted the token, the app picked it up and authenticated
@@ -2011,10 +2058,11 @@ wipes app data — the README quick start documents this.
 - `getmetasnapshot`: 53 archetypes, 636 card entries, **443** distinct cards
   covered
 - `getdecks`: only `page` and `my` work; 30/page
-- Deck write endpoint is **`savedeck`** (not `setdecks`); it **creates only** —
-  `id`, `slug` and `name` are all ignored as selectors, and an empty body seeds an
-  8-card deck. `deletedeck` is a no-op. The site's own JS never calls it in any
-  reachable bundle.
+- Deck write endpoint is **`savedeck`** (not `setdecks`). Its selector is
+  **`deckname`**, a 10-char machine name; `id`, `slug` and `name` are ignored, so
+  re-POSTing a `deckname` updates and any new one creates (the card map is
+  replaced wholesale). The display title is `humanname`, and the slug is derived
+  from it. `deletedeck` is still a no-op.
 - Collection writes: `savebindercard` **requires a real binder** and fails at
   binder 0 with `Binder not found`; **`savebatchcollection`** takes no binder and
   is what the site calls. Verified additive (two separate writes both persisted).

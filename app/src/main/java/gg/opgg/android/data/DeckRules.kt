@@ -227,7 +227,7 @@ data class RuleViolation(
     val cardId: String? = null,
 )
 
-/** A deck authored on this device. Not synced to onepiece.gg. */
+/** A deck authored on this device, optionally linked to a copy on onepiece.gg. */
 @kotlinx.serialization.Serializable
 data class LocalDeck(
     val id: String,
@@ -238,6 +238,14 @@ data class LocalDeck(
     val cards: Map<String, Int> = emptyMap(),
     val createdAt: Long = 0,
     val updatedAt: Long = 0,
+    /**
+     * Machine name of this deck's copy on onepiece.gg, once it has been saved
+     * there. Reusing it updates that deck; clearing it would create a
+     * duplicate on the next save.
+     */
+    val siteDeckname: String? = null,
+    /** Public slug of the site copy. Changes when the deck is renamed there. */
+    val siteSlug: String? = null,
 ) {
     /**
      * Sets or removes copies of a printing.
